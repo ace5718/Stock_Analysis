@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>設定 — 台股 AI 模擬交易</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <h1>設定</h1>
+    <nav>
+      <a href="/">看盤</a>
+      <a href="/performance">績效</a>
+      <a href="/backtest">回測</a>
+      <a href="/settings">設定</a>
+    </nav>
+  </header>
+  <main class="main" style="max-width: 640px; margin: 1rem auto;">
+    <section class="panel">
+      <h3>自選股</h3>
+      <div id="settings-watchlist"></div>
+      <div class="form-row">
+        <input id="new-symbol" placeholder="股票代號" />
+        <button id="btn-add" type="button">新增</button>
+      </div>
+    </section>
+    <section class="panel">
+      <h3>模擬帳戶與下單</h3>
+      <div class="form-row"><label>虛擬資金</label><input id="virtual-cash" type="number" /></div>
+      <div class="form-row">
+        <label>下單模式</label>
+        <select id="order-mode">
+          <option value="notify_confirm">通知後確認</option>
+          <option value="full_auto">全自動</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>股數策略</label>
+        <select id="order-size-mode">
+          <option value="percent">資金比例 %</option>
+          <option value="fixed_lots">固定張數</option>
+        </select>
+        <input id="order-size-value" type="number" />
+      </div>
+      <div class="form-row"><label>停損 %</label><input id="stop-loss" type="number" /></div>
+      <div class="form-row"><label>單日虧損上限 %</label><input id="daily-loss" type="number" /></div>
+    </section>
+    <section class="panel">
+      <h3>觸發條件</h3>
+      <div class="form-row"><label>RSI 超賣</label><input id="rsi-oversold" type="number" /></div>
+      <div class="form-row"><label>RSI 超買</label><input id="rsi-overbought" type="number" /></div>
+      <div class="form-row"><label>量比門檻</label><input id="volume-ratio" type="number" step="0.1" /></div>
+      <label><input type="checkbox" id="trigger-rsi" /> RSI</label>
+      <label><input type="checkbox" id="trigger-ma" /> 均線交叉</label>
+      <label><input type="checkbox" id="trigger-macd" /> MACD</label>
+      <label><input type="checkbox" id="trigger-volume" /> 量比</label>
+    </section>
+    <section class="panel">
+      <h3>通知與回測</h3>
+      <label><input type="checkbox" id="notify-enabled" /> 啟用 Gmail 通知</label>
+      <div class="form-row"><label>回測使用 AI</label><input type="checkbox" id="backtest-ai" /></div>
+      <div class="form-row"><label>回測 AI 次數上限</label><input id="backtest-max" type="number" /></div>
+    </section>
+    <button id="btn-save" type="button">儲存設定</button>
+  </main>
+  <script type="module">
+    import { api } from "/static/app.js";
+    async function load() {
+      const s = await api("/api/settings");
+      const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+      const chk = (id, v) => { const el = document.getElementById(id); if (el) el.checked = !!v; };
+      set("virtual-cash", s.virtual_cash);
+      set("order-mode", s.order_mode);
+      set("order-size-mode", s.order_size_mode);
+      set("order-size-value", s.order_size_value);
+      set("stop-loss", s.stop_loss_pct);
+      set("daily-loss", s.daily_loss_limit_pct);
+      set("rsi-oversold", s.rsi_oversold);
+      set("rsi-overbought", s.rsi_overbought);
+      set("volume-ratio", s.volume_ratio_threshold);
+      chk("trigger-rsi", s.trigger_rsi);
+      chk("trigger-ma", s.trigger_ma_cross);
+      chk("trigger-macd", s.trigger_macd);
+      chk("trigger-volume", s.trigger_volume);
+      chk("notify-enabled", s.notify_enabled);
+      chk("backtest-ai", s.backtest_use_ai);
+      set("backtest-max", s.backtest_ai_max_calls);
+      const wl = await api("/api/watchlist");
+      document.getElementById("settings-watchlist").innerHTML = wl
+        .map((w) => `<div>${w.symbol} <button data-sym="${w.symbol}" class="btn-del">刪除</button></div>`)
+        .join("");
+      document.querySelectorAll(".btn-del").forEach((b) =>
+        b.addEventListener("click", async () => {
+          await api(`/api/watchlist/${b.dataset.sym}`, { method: "DELETE" });
+          load();
+        })
+      );
+    }
+    document.getElementById("btn-add").onclick = async () => {
+      const sym = document.getElementById("new-symbol").value.trim();
+      if (sym) await api("/api/watchlist", { method: "POST", body: JSON.stringify({ symbol: sym }) });
+      load();
+    };
+    document.getElementById("btn-save").onclick = async () => {
+      const body = {
+        virtual_cash: parseFloat(document.getElementById("virtual-cash").value),
+        order_mode: document.getElementById("order-mode").value,
+        order_size_mode: document.getElementById("order-size-mode").value,
+        order_size_value: parseFloat(document.getElementById("order-size-value").value),
+        stop_loss_pct: parseFloat(document.getElementById("stop-loss").value),
+        daily_loss_limit_pct: parseFloat(document.getElementById("daily-loss").value),
+        rsi_oversold: parseFloat(document.getElementById("rsi-oversold").value),
+        rsi_overbought: parseFloat(document.getElementById("rsi-overbought").value),
+        volume_ratio_threshold: parseFloat(document.getElementById("volume-ratio").value),
+        trigger_rsi: document.getElementById("trigger-rsi").checked,
+        trigger_ma_cross: document.getElementById("trigger-ma").checked,
+        trigger_macd: document.getElementById("trigger-macd").checked,
+        trigger_volume: document.getElementById("trigger-volume").checked,
+        notify_enabled: document.getElementById("notify-enabled").checked,
+        backtest_use_ai: document.getElementById("backtest-ai").checked,
+        backtest_ai_max_calls: parseInt(document.getElementById("backtest-max").value, 10),
+      };
+      await api("/api/settings", { method: "PATCH", body: JSON.stringify(body) });
+      alert("已儲存");
+    };
+    load();
+  </script>
+</body>
+</html>

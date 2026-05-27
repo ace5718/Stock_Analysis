@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>台股 AI 模擬交易</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+  <header>
+    <h1>台股 AI 模擬交易</h1>
+    <span>交易模式</span>
+    <select id="order-mode">
+      <option value="notify_confirm">通知後確認</option>
+      <option value="full_auto">全自動</option>
+    </select>
+    <span>AI 引擎</span>
+    <select id="ai-engine">
+      <option value="openai">GPT-4o</option>
+      <option value="claude">Claude</option>
+      <option value="gemini">Gemini</option>
+    </select>
+    <nav>
+      <a href="/">看盤</a>
+      <a href="/performance">績效</a>
+      <a href="/backtest">回測</a>
+      <a href="/settings">設定</a>
+    </nav>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="form-row">
+        <input id="new-symbol" placeholder="代號" maxlength="6" />
+        <button id="btn-add-watch" type="button">新增</button>
+      </div>
+      <div id="watchlist"></div>
+    </aside>
+    <main class="main">
+      <div id="chart"></div>
+      <div id="indicators-bar" class="indicators-bar">指標載入中…</div>
+      <section class="panel">
+        <h3>AI 分析</h3>
+        <div id="ai-panel"></div>
+        <button id="btn-analyze" type="button">立即分析</button>
+      </section>
+      <section class="panel">
+        <h3>模擬交易</h3>
+        <div id="portfolio-summary"></div>
+        <div class="trade-actions">
+          <input id="trade-qty" type="number" value="1000" step="1000" min="1000" />
+          <button id="btn-buy" type="button">模擬買進</button>
+          <button id="btn-sell" type="button">模擬賣出</button>
+        </div>
+        <div id="pending-orders"></div>
+        <p class="disclaimer">本系統僅供個人練習，AI 結果不構成投資建議。</p>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>

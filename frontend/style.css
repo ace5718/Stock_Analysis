@@ -1,0 +1,100 @@
+:root {
+  --bg: #0d1117;
+  --panel: #161b22;
+  --border: #30363d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --up: #f85149;
+  --down: #3fb950;
+  --accent: #58a6ff;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+header h1 { font-size: 1.1rem; margin: 0; }
+nav a {
+  color: var(--accent);
+  text-decoration: none;
+  margin-right: 0.75rem;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 0;
+  min-height: calc(100vh - 52px);
+}
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr; }
+}
+.sidebar {
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  padding: 0.5rem;
+}
+.watch-item {
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+.watch-item:hover, .watch-item.active { background: #21262d; }
+.watch-item .sym { font-weight: 600; }
+.up { color: var(--up); }
+.down { color: var(--down); }
+.main { padding: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+#chart { height: 320px; background: var(--panel); border-radius: 8px; }
+.indicators-bar {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.5rem;
+  background: var(--panel);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+.panel h3 { margin: 0 0 0.5rem; font-size: 0.95rem; }
+button, select, input {
+  background: #21262d;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+}
+button { cursor: pointer; }
+button:hover { border-color: var(--accent); }
+.form-row { margin-bottom: 0.5rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+label { color: var(--muted); font-size: 0.85rem; }
+.disclaimer { font-size: 0.75rem; color: var(--muted); margin-top: 0.5rem; }
+.trade-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th, td { padding: 0.4rem; border-bottom: 1px solid var(--border); text-align: left; }
+.signal-tag {
+  display: inline-block;
+  background: #388bfd33;
+  color: var(--accent);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-right: 4px;
+}

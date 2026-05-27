@@ -1,9 +1,12 @@
 .env
 .env.*
+!.env.example
+.venv/
 *.pyc
 __pycache__/
-.venv/
 venv/
 .idea/
 .vscode/
 *.log
+data/trading.db
+data/*.db

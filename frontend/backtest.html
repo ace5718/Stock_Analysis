@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>回測 — 台股 AI 模擬交易</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <h1>歷史回測</h1>
+    <nav>
+      <a href="/">看盤</a>
+      <a href="/performance">績效</a>
+      <a href="/backtest">回測</a>
+      <a href="/settings">設定</a>
+    </nav>
+  </header>
+  <main class="main" style="padding: 1rem; max-width: 720px;">
+    <section class="panel">
+      <div class="form-row"><label>股票代號</label><input id="symbol" value="2330" /></div>
+      <div class="form-row"><label>起始</label><input id="start" type="date" /></div>
+      <div class="form-row"><label>結束</label><input id="end" type="date" /></div>
+      <label><input type="checkbox" id="use-ai" /> 使用 AI（受配額限制）</label>
+      <button id="btn-run" type="button">執行回測</button>
+    </section>
+    <section class="panel" id="result">請設定區間後執行</section>
+    <p class="disclaimer">回測結果不保證未來表現，僅供策略驗證參考。</p>
+  </main>
+  <script type="module">
+    import { api } from "/static/app.js";
+    const end = new Date();
+    const start = new Date();
+    start.setFullYear(start.getFullYear() - 1);
+    document.getElementById("end").value = end.toISOString().slice(0, 10);
+    document.getElementById("start").value = start.toISOString().slice(0, 10);
+    document.getElementById("btn-run").onclick = async () => {
+      const body = {
+        symbol: document.getElementById("symbol").value.trim(),
+        start_date: document.getElementById("start").value,
+        end_date: document.getElementById("end").value,
+        use_ai: document.getElementById("use-ai").checked,
+      };
+      const r = await api("/api/backtest", { method: "POST", body: JSON.stringify(body) });
+      if (r.error) {
+        document.getElementById("result").innerHTML = `<p>${r.error}</p>`;
+        return;
+      }
+      document.getElementById("result").innerHTML = `
+        <p>策略報酬：${r.strategy_return_pct}%　買入持有：${r.buy_hold_return_pct}%</p>
+        <p>勝率：${r.win_rate}%　最大回撤：${r.max_drawdown_pct}%　年化：${r.annualized_return_pct}%</p>
+        <p>交易次數：${r.trades_count}　AI 呼叫：${r.ai_calls_used}</p>
+      `;
+    };
+  </script>
+</body>
+</html>

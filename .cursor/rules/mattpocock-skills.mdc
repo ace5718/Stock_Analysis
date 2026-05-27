@@ -1,0 +1,49 @@
+---
+description: 何時與如何套用 Matt Pocock 技能（.agents/skills）
+alwaysApply: true
+---
+
+# Matt Pocock Skills 使用規則
+
+本專案已安裝 [mattpocock/skills](https://github.com/mattpocock/skills)，技能位於 `.agents/skills/<名稱>/`。鎖定檔：`skills-lock.json`。
+
+## 強制流程
+
+1. **先讀 SKILL.md**：套用任何技能前，必須完整讀取 `.agents/skills/<名稱>/SKILL.md`（及該技能引用的附檔），不得憑記憶執行。
+2. **先設定再開工**：若 `docs/agents/` 或 `AGENTS.md` / `CLAUDE.md` 的 `## Agent skills` 區塊尚不存在，在使用 `to-issues`、`to-prd`、`triage`、`diagnose`、`tdd`、`improve-codebase-architecture`、`zoom-out` 前，先引導使用者執行 **`/setup-matt-pocock-skills`**（或代為依該 SKILL 完成設定）。
+3. **對齊再實作**：新功能、大改動或需求不清時，優先 `grill-me` 或 `grill-with-docs`，再進入 TDD／實作。
+4. **領域語言**：有 `CONTEXT.md` 時，命名與說明應與其術語一致；`grill-with-docs` 可建立或更新它與 `docs/adr/`。
+
+## 技能對照（依意圖選用）
+
+| 情境 | 技能 | 路徑 |
+|------|------|------|
+| 首次使用工程類技能、缺 issue／標籤／文件設定 | `setup-matt-pocock-skills` | `.agents/skills/setup-matt-pocock-skills/` |
+| 釐清計畫、需求對齊（不寫碼） | `grill-me` | `.agents/skills/grill-me/` |
+| 對齊計畫並更新 CONTEXT／ADR | `grill-with-docs` | `.agents/skills/grill-with-docs/` |
+| 寫功能或修 bug（紅綠重構） | `tdd` | `.agents/skills/tdd/` |
+| 難查的 bug、效能問題 | `diagnose` | `.agents/skills/diagnose/` |
+| 計畫拆成可獨立處理的 issues | `to-issues` | `.agents/skills/to-issues/` |
+| 對話內容整理成 PRD issue | `to-prd` | `.agents/skills/to-prd/` |
+| Issue 分類與標籤狀態機 | `triage` | `.agents/skills/triage/` |
+| 不熟悉程式區塊需系統視角 | `zoom-out` | `.agents/skills/zoom-out/` |
+| 架構債、模組加深機會 | `improve-codebase-architecture` | `.agents/skills/improve-codebase-architecture/` |
+| 驗證設計（終端或 UI 原型） | `prototype` | `.agents/skills/prototype/` |
+| 精簡回覆、降 token | `caveman` | `.agents/skills/caveman/` |
+| 交接給另一個 agent | `handoff` | `.agents/skills/handoff/` |
+| 撰寫新 skill | `write-a-skill` | `.agents/skills/write-a-skill/` |
+
+## 本專案預設
+
+- **Issue 追蹤**：GitHub — `ace5718/Stock_Analysis`（`gh` CLI）
+- **領域文件**：單一 context — 根目錄 `CONTEXT.md` + `docs/adr/`（尚未建立時由 `grill-with-docs` 或 setup 補齊）
+
+## 使用者如何觸發
+
+使用者在 Cursor 對話輸入斜線指令，例如 `/tdd`、`/grill-with-docs`。Agent 收到相關請求時，應主動依上表讀取對應 SKILL 並遵循其流程。
+
+## 勿做的事
+
+- 未讀 SKILL.md 就宣稱已執行某技能流程
+- 在工程類技能缺 `docs/agents/` 設定時仍呼叫 `gh issue` 等依賴設定的操作
+- 用一般聊天流程取代 `tdd` 的紅綠重構或 `diagnose` 的診斷循環

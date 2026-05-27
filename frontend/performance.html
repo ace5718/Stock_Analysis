@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>績效 — 台股 AI 模擬交易</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <h1>績效追蹤</h1>
+    <nav>
+      <a href="/">看盤</a>
+      <a href="/performance">績效</a>
+      <a href="/backtest">回測</a>
+      <a href="/settings">設定</a>
+    </nav>
+  </header>
+  <main class="main" style="padding: 1rem;">
+    <div class="form-row">
+      <label>區間</label>
+      <select id="period">
+        <option value="all">全部</option>
+        <option value="month">本月</option>
+        <option value="week">本週</option>
+      </select>
+      <button id="btn-load" type="button">重新載入</button>
+    </div>
+    <section class="panel" id="stats"></section>
+    <section class="panel">
+      <h3>交易紀錄</h3>
+      <table>
+        <thead><tr><th>時間</th><th>標的</th><th>方向</th><th>股數</th><th>價格</th><th>損益</th></tr></thead>
+        <tbody id="trades-body"></tbody>
+      </table>
+    </section>
+  </main>
+  <script type="module">
+    import { api } from "/static/app.js";
+    async function load() {
+      const period = document.getElementById("period").value;
+      const d = await api(`/api/performance?period=${period}`);
+      document.getElementById("stats").innerHTML = `
+        <p>勝率：${d.win_rate}%（${d.total_trades} 筆平倉）</p>
+        <p>最大獲利：NT$${d.max_win}　最大虧損：NT$${d.max_loss}</p>
+        <p>平均損益：NT$${d.avg_pnl}</p>
+        <p>權益曲線點數：${(d.equity_curve || []).length}</p>
+      `;
+      document.getElementById("trades-body").innerHTML = (d.trades || [])
+        .map(
+          (t) =>
+            `<tr><td>${t.created_at?.slice(0, 16)}</td><td>${t.symbol}</td><td>${t.side}</td><td>${t.qty}</td><td>${t.price}</td><td>${t.pnl ?? "—"}</td></tr>`
+        )
+        .join("");
+    }
+    document.getElementById("btn-load").onclick = load;
+    document.getElementById("period").onchange = load;
+    load();
+  </script>
+</body>
+</html>
