@@ -3,13 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>台股 AI 模擬交易</title>
+  <title>AI 模擬交易</title>
   <link rel="stylesheet" href="/static/style.css" />
-  <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+  <script src="https://unpkg.com/lightweight-charts@4.2.1/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
   <header>
-    <h1>台股 AI 模擬交易</h1>
+    <h1 id="page-title">台股 AI 模擬交易</h1>
+    <div class="market-tabs" role="tablist">
+      <button type="button" class="market-tab active" data-market="tw">台股</button>
+      <button type="button" class="market-tab" data-market="crypto">虛擬貨幣</button>
+    </div>
     <span>交易模式</span>
     <select id="order-mode">
       <option value="notify_confirm">通知後確認</option>
@@ -31,12 +35,14 @@
   <div class="layout">
     <aside class="sidebar">
       <div class="form-row">
-        <input id="new-symbol" placeholder="代號" maxlength="6" />
+        <input id="new-symbol" placeholder="2330" maxlength="12" />
         <button id="btn-add-watch" type="button">新增</button>
       </div>
+      <p class="disclaimer" id="watch-hint">台股代號 4 碼，最多 5 檔</p>
       <div id="watchlist"></div>
     </aside>
     <main class="main">
+      <div id="chart-meta" class="disclaimer"></div>
       <div id="chart"></div>
       <div id="indicators-bar" class="indicators-bar">指標載入中…</div>
       <section class="panel">
@@ -47,13 +53,21 @@
       <section class="panel">
         <h3>模擬交易</h3>
         <div id="portfolio-summary"></div>
+        <div id="positions-panel" class="positions-panel">
+          <h4>持倉明細</h4>
+          <div id="positions-list" class="positions-list"></div>
+        </div>
         <div class="trade-actions">
-          <input id="trade-qty" type="number" value="1000" step="1000" min="1000" />
+          <input id="trade-qty" type="number" value="1000" step="1000" min="1000" aria-labelledby="trade-qty-label" />
+          <span id="trade-qty-label" class="disclaimer">數量</span>
+          <button id="btn-max-qty" type="button" title="依虛擬資金填入可買上限">可買上限</button>
           <button id="btn-buy" type="button">模擬買進</button>
           <button id="btn-sell" type="button">模擬賣出</button>
         </div>
+        <p id="trade-qty-hint" class="disclaimer"></p>
+        <div id="trade-estimate" class="trade-estimate" aria-live="polite"></div>
         <div id="pending-orders"></div>
-        <p class="disclaimer">本系統僅供個人練習，AI 結果不構成投資建議。</p>
+        <p class="disclaimer">本系統僅供個人練習，AI 結果不構成投資建議。台股與虛擬貨幣分開帳戶與自選股。</p>
       </section>
     </main>
   </div>

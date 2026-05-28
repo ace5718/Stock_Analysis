@@ -8,6 +8,7 @@ import httpx
 import pandas as pd
 
 from backend.config import FUGLE_API_KEY
+from backend.markets import MARKET_TW
 
 _quotes: dict[str, dict[str, Any]] = {}
 _kline_cache: dict[str, pd.DataFrame] = {}
@@ -25,6 +26,7 @@ def get_all_quotes() -> dict[str, dict[str, Any]]:
 def _empty_quote(symbol: str) -> dict:
     return {
         "symbol": symbol.upper(),
+        "market": MARKET_TW,
         "name": symbol,
         "price": 0.0,
         "change": 0.0,
@@ -44,6 +46,7 @@ def _mock_price(symbol: str, base: float) -> dict:
     pct = change / prev * 100 if prev else 0
     return {
         "symbol": symbol.upper(),
+        "market": MARKET_TW,
         "name": symbol,
         "price": round(price, 2),
         "change": round(change, 2),
@@ -110,6 +113,7 @@ def _parse_fugle_quote(symbol: str, data: dict) -> dict:
     pct = change / float(prev) * 100 if prev else 0
     return {
         "symbol": symbol.upper(),
+        "market": MARKET_TW,
         "name": data.get("name", symbol),
         "price": float(last),
         "change": round(change, 2),
@@ -120,16 +124,49 @@ def _parse_fugle_quote(symbol: str, data: dict) -> dict:
     }
 
 
+def clear_kline_cache() -> None:
+    _kline_cache.clear()
+
+
 def fetch_klines(symbol: str, days: int = 120) -> pd.DataFrame:
     sym = symbol.upper()
     if sym in _kline_cache and len(_kline_cache[sym]) >= days:
-        return _kline_cache[sym].tail(days).copy()
+        return _kline_cache[sym].tail(days).reset_index(drop=True).copy()
     if FUGLE_API_KEY:
         df = _fetch_fugle_candles(sym, days)
     else:
         df = _generate_mock_ohlcv(sym, days)
+    df = df.sort_values("time").reset_index(drop=True)
     _kline_cache[sym] = df
     return df.copy()
+
+
+def _normalize_kline_df(df: pd.DataFrame) -> pd.DataFrame:
+    """Map Fugle / mixed column names and drop rows with invalid OHLC."""
+    aliases = {
+        "time": ("time", "date", "timestamp"),
+        "open": ("open", "openPrice", "o"),
+        "high": ("high", "highPrice", "h"),
+        "low": ("low", "lowPrice", "l"),
+        "close": ("close", "closePrice", "c"),
+        "volume": ("volume", "totalVolume", "v"),
+    }
+    out = pd.DataFrame()
+    for target, names in aliases.items():
+        for name in names:
+            if name in df.columns:
+                out[target] = df[name]
+                break
+    if out.empty or "time" not in out.columns:
+        return pd.DataFrame()
+    out["time"] = pd.to_datetime(out["time"], errors="coerce")
+    for col in ("open", "high", "low", "close", "volume"):
+        if col in out.columns:
+            out[col] = pd.to_numeric(out[col], errors="coerce")
+    out = out.dropna(subset=["time", "open", "high", "low", "close"])
+    out["time"] = out["time"].dt.strftime("%Y-%m-%d")
+    out["volume"] = out["volume"].fillna(0).astype(int)
+    return out.sort_values("time")
 
 
 def _fetch_fugle_candles(symbol: str, days: int) -> pd.DataFrame:
@@ -141,23 +178,14 @@ def _fetch_fugle_candles(symbol: str, days: int) -> pd.DataFrame:
                 params={"timeframe": "D"},
             )
             if r.status_code == 200:
-                rows = r.json().get("data", r.json())
+                payload = r.json()
+                rows = payload.get("data", payload)
+                if isinstance(rows, dict):
+                    rows = rows.get("candles", rows.get("data", []))
                 if isinstance(rows, list) and rows:
-                    df = pd.DataFrame(rows)
-                    colmap = {
-                        "open": "open",
-                        "high": "high",
-                        "low": "low",
-                        "close": "close",
-                        "volume": "volume",
-                        "date": "time",
-                    }
-                    for k, v in colmap.items():
-                        if k in df.columns and v not in df.columns:
-                            df[v] = df[k]
-                    if "time" not in df.columns:
-                        df["time"] = range(len(df))
-                    return df[["time", "open", "high", "low", "close", "volume"]].tail(days)
+                    df = _normalize_kline_df(pd.DataFrame(rows))
+                    if not df.empty:
+                        return df.tail(days)
     except Exception:
         pass
     return _generate_mock_ohlcv(symbol, days)

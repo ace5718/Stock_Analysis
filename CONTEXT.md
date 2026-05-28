@@ -1,6 +1,13 @@
-# 台股 AI 模擬交易
+# AI 模擬交易（台股／虛擬貨幣）
 
-個人使用的台股波段模擬交易練習工具：即時行情、技術指標觸發、AI 買賣建議、模擬下單與回測。
+個人使用的波段模擬交易練習工具：即時行情、技術指標觸發、AI 買賣建議、模擬下單與回測。
+
+## 市場（market）
+
+- **tw**：台股（Fugle 或 mock），代號 4 碼，下單以 **1000 股**為單位，虛擬資金 `virtual_cash_tw`（NT$）。
+- **crypto**：虛擬貨幣（Binance 公開 API 或 mock），代號如 `BTC` 會正規化為 `BTCUSDT`，數量為小數，虛擬資金 `virtual_cash_crypto`（USDT）。
+
+台股與虛擬貨幣 **分開**：自選股（各最多 5 檔）、持倉、成交、待確認單、分析快取、WebSocket 訂閱（`?market=tw|crypto`）。
 
 ## Language
 

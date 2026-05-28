@@ -25,12 +25,14 @@ class WatchlistItem(BaseModel):
 class WatchlistCreate(BaseModel):
     symbol: str
     name: Optional[str] = None
+    market: str = "tw"
 
 
 class TradeRequest(BaseModel):
     symbol: str
     side: Literal["buy", "sell"]
-    qty: int = Field(gt=0)
+    qty: float = Field(gt=0)
+    market: str = "tw"
 
 
 class SettingsPatch(BaseModel):
@@ -39,6 +41,8 @@ class SettingsPatch(BaseModel):
     order_size_mode: Optional[OrderSizeMode] = None
     order_size_value: Optional[float] = None
     virtual_cash: Optional[float] = None
+    virtual_cash_tw: Optional[float] = None
+    virtual_cash_crypto: Optional[float] = None
     notify_enabled: Optional[bool] = None
     rsi_oversold: Optional[float] = None
     rsi_overbought: Optional[float] = None

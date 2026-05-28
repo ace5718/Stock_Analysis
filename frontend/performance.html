@@ -18,6 +18,11 @@
   </header>
   <main class="main" style="padding: 1rem;">
     <div class="form-row">
+      <label>市場</label>
+      <select id="perf-market">
+        <option value="tw">台股</option>
+        <option value="crypto">虛擬貨幣</option>
+      </select>
       <label>區間</label>
       <select id="period">
         <option value="all">全部</option>
@@ -30,7 +35,7 @@
     <section class="panel">
       <h3>交易紀錄</h3>
       <table>
-        <thead><tr><th>時間</th><th>標的</th><th>方向</th><th>股數</th><th>價格</th><th>損益</th></tr></thead>
+        <thead><tr><th>時間</th><th>標的</th><th>方向</th><th>數量</th><th>價格</th><th>損益</th></tr></thead>
         <tbody id="trades-body"></tbody>
       </table>
     </section>
@@ -39,11 +44,14 @@
     import { api } from "/static/app.js";
     async function load() {
       const period = document.getElementById("period").value;
-      const d = await api(`/api/performance?period=${period}`);
+      const market = document.getElementById("perf-market").value;
+      const cur = market === "crypto" ? "USDT" : "NT$";
+      const d = await api(`/api/performance?period=${period}&market=${market}`);
       document.getElementById("stats").innerHTML = `
+        <p>市場：${market === "crypto" ? "虛擬貨幣" : "台股"}</p>
         <p>勝率：${d.win_rate}%（${d.total_trades} 筆平倉）</p>
-        <p>最大獲利：NT$${d.max_win}　最大虧損：NT$${d.max_loss}</p>
-        <p>平均損益：NT$${d.avg_pnl}</p>
+        <p>最大獲利：${cur}${d.max_win}　最大虧損：${cur}${d.max_loss}</p>
+        <p>平均損益：${cur}${d.avg_pnl}</p>
         <p>權益曲線點數：${(d.equity_curve || []).length}</p>
       `;
       document.getElementById("trades-body").innerHTML = (d.trades || [])
@@ -55,6 +63,7 @@
     }
     document.getElementById("btn-load").onclick = load;
     document.getElementById("period").onchange = load;
+    document.getElementById("perf-market").onchange = load;
     load();
   </script>
 </body>

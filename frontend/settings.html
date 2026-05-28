@@ -27,7 +27,8 @@
     </section>
     <section class="panel">
       <h3>模擬帳戶與下單</h3>
-      <div class="form-row"><label>虛擬資金</label><input id="virtual-cash" type="number" /></div>
+      <div class="form-row"><label>台股虛擬資金 (NT$)</label><input id="virtual-cash-tw" type="number" /></div>
+      <div class="form-row"><label>虛擬貨幣資金 (USDT)</label><input id="virtual-cash-crypto" type="number" /></div>
       <div class="form-row">
         <label>下單模式</label>
         <select id="order-mode">
@@ -70,7 +71,8 @@
       const s = await api("/api/settings");
       const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
       const chk = (id, v) => { const el = document.getElementById(id); if (el) el.checked = !!v; };
-      set("virtual-cash", s.virtual_cash);
+      set("virtual-cash-tw", s.virtual_cash_tw ?? s.virtual_cash);
+      set("virtual-cash-crypto", s.virtual_cash_crypto ?? 1_000_000);
       set("order-mode", s.order_mode);
       set("order-size-mode", s.order_size_mode);
       set("order-size-value", s.order_size_value);
@@ -104,7 +106,8 @@
     };
     document.getElementById("btn-save").onclick = async () => {
       const body = {
-        virtual_cash: parseFloat(document.getElementById("virtual-cash").value),
+        virtual_cash_tw: parseFloat(document.getElementById("virtual-cash-tw").value),
+        virtual_cash_crypto: parseFloat(document.getElementById("virtual-cash-crypto").value),
         order_mode: document.getElementById("order-mode").value,
         order_size_mode: document.getElementById("order-size-mode").value,
         order_size_value: parseFloat(document.getElementById("order-size-value").value),
